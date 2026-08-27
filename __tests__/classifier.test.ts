@@ -8,6 +8,15 @@ describe('Comment Classifier', () => {
       expect(result.tags).toContain('询价');
     });
 
+    test('should detect roundabout price questions', () => {
+      const variations = ['多少', '啥价', '多少呀'];
+      variations.forEach((text) => {
+        const result = classifyComment({ text });
+        expect(result.category).toBe('purchase');
+        expect(result.tags).toContain('询价');
+      });
+    });
+
     test('should detect price inquiries in English', () => {
       const result = classifyComment({ text: 'How much does this cost?' });
       expect(result.category).toBe('purchase');
@@ -19,6 +28,14 @@ describe('Comment Classifier', () => {
       expect(result.category).toBe('purchase');
       expect(result.tags).toContain('询价');
     });
+
+    test('should provide on-platform reply for price questions', () => {
+      const result = classifyComment({ text: '多少？' });
+      expect(result.suggestedReply).toContain('商品卡');
+      expect(result.suggestedReply).toContain('站内私信');
+      expect(result.suggestedReply).not.toContain('微信');
+      expect(result.suggestedReply).not.toContain('加v');
+    });
   });
 
   describe('Purchase Intent - 产品问题', () => {
@@ -27,6 +44,12 @@ describe('Comment Classifier', () => {
       expect(result.category).toBe('purchase');
       expect(result.tags).toContain('产品问题');
       expect(result.suggestedReply).toContain('尺码');
+    });
+
+    test('should detect roundabout stock questions', () => {
+      const result = classifyComment({ text: '有m吗' });
+      expect(result.category).toBe('purchase');
+      expect(result.tags).toContain('产品问题');
     });
 
     test('should detect color questions', () => {
@@ -41,10 +64,27 @@ describe('Comment Classifier', () => {
       expect(result.tags).toContain('产品问题');
     });
 
+    test('should detect roundabout link requests', () => {
+      const variations = ['第几张', '图几', '怎么拿', 'po一下'];
+      variations.forEach((text) => {
+        const result = classifyComment({ text });
+        expect(result.category).toBe('purchase');
+        expect(result.tags).toContain('产品问题');
+      });
+    });
+
     test('should detect English size questions', () => {
       const result = classifyComment({ text: 'What sizes are available?' });
       expect(result.category).toBe('purchase');
       expect(result.tags).toContain('产品问题');
+    });
+
+    test('should provide on-platform reply for product questions', () => {
+      const result = classifyComment({ text: '第几张？' });
+      expect(result.suggestedReply).toContain('商品卡');
+      expect(result.suggestedReply).toContain('站内私信');
+      expect(result.suggestedReply).not.toContain('微信');
+      expect(result.suggestedReply).not.toContain('vx');
     });
   });
 
@@ -59,6 +99,19 @@ describe('Comment Classifier', () => {
       const result = classifyComment({ text: '怎么下单？' });
       expect(result.category).toBe('purchase');
       expect(result.tags).toContain('购买意向');
+    });
+
+    test('should detect homepage mentions as buying intent', () => {
+      const result = classifyComment({ text: '主页' });
+      expect(result.category).toBe('purchase');
+      expect(result.tags).toContain('购买意向');
+    });
+
+    test('should provide on-platform reply for buying intent', () => {
+      const result = classifyComment({ text: '想买' });
+      expect(result.suggestedReply).toContain('商品卡');
+      expect(result.suggestedReply).toContain('站内私信');
+      expect(result.suggestedReply).not.toContain('微信');
     });
   });
 
@@ -89,6 +142,13 @@ describe('Comment Classifier', () => {
       const result = classifyComment({ text: '加telegram详聊' });
       expect(result.category).toBe('spam');
       expect(result.tags).toContain('站外引流');
+    });
+
+    test('should suggest deletion for spam with off-platform contact', () => {
+      const result = classifyComment({ text: '加微信' });
+      expect(result.suggestedReply).toContain('删除');
+      expect(result.suggestedReply).not.toContain('微信');
+      expect(result.suggestedReply).not.toContain('如何');
     });
   });
 
@@ -201,14 +261,30 @@ describe('Comment Classifier', () => {
   });
 
   describe('Suggested Replies', () => {
-    test('should provide purchase reply', () => {
+    test('should provide on-platform purchase reply', () => {
       const result = classifyComment({ text: '多少钱？' });
       expect(result.suggestedReply).toBeTruthy();
-      expect(result.suggestedReply).toContain('价格');
+      expect(result.suggestedReply).toContain('商品卡');
+      expect(result.suggestedReply).not.toContain('微信');
+      expect(result.suggestedReply).not.toContain('vx');
+      expect(result.suggestedReply).not.toContain('加v');
     });
 
     test('should suggest deletion for spam', () => {
       const result = classifyComment({ text: '加微信' });
+      expect(result.suggestedReply).toContain('删除');
+    });
+
+    test('roundabout price ask gets on-platform reply', () => {
+      const result = classifyComment({ text: '多少' });
+      expect(result.category).toBe('purchase');
+      expect(result.suggestedReply).toContain('商品卡');
+      expect(result.suggestedReply).toContain('站内私信');
+    });
+
+    test('加v line gets delete suggestion', () => {
+      const result = classifyComment({ text: '加v详聊' });
+      expect(result.category).toBe('spam');
       expect(result.suggestedReply).toContain('删除');
     });
   });

@@ -24,25 +24,25 @@ interface Rule {
 const PURCHASE_RULES: Rule[] = [
   {
     patterns: [
-      /多少钱|怎么卖|价格|包邮|优惠|折扣/i,
+      /多少钱|多少|啥价|怎么卖|价格|包邮|优惠|折扣/i,
       /how\s*much|price|cost|shipping/i,
     ],
     category: 'purchase',
     tag: '询价',
-    reason: '包含价格相关询问',
+    reason: '包含价格相关询问（含委婉询价）',
   },
   {
     patterns: [
-      /码|尺码|颜色|材质|有货|链接|同款|型号/i,
+      /码|尺码|颜色|材质|有货|有m[吗码]?|链接|同款|型号|第几张|图几|怎么拿|po一下/i,
       /size|color|material|in\s*stock|link|where\s*to\s*buy/i,
     ],
     category: 'purchase',
     tag: '产品问题',
-    reason: '询问产品细节',
+    reason: '询问产品细节或商品位置',
   },
   {
     patterns: [
-      /想买|下单|求链接|怎么买|购买/i,
+      /想买|下单|求链接|有链接吗|怎么买|购买|主页/i,
       /want\s*to\s*buy|order|purchase/i,
     ],
     category: 'purchase',
@@ -147,20 +147,22 @@ export function classifyComment(comment: Comment): ClassifiedComment {
 
 function generatePurchaseReply(tag: string, text: string): string {
   if (tag === '询价') {
-    return '价格请私信了解，或点击主页链接查看详情～';
+    return '亲，点击笔记商品卡或挂车可以看价格哦～也可以站内私信我详细咨询💕';
   } else if (tag === '产品问题') {
-    if (/码|尺码|size/i.test(text)) {
-      return '尺码详情请看主页链接的商品说明，有详细尺码表哦～';
+    if (/码|尺码|有m|size/i.test(text)) {
+      return '尺码信息在笔记商品卡里有详细说明哦～或者站内私信我，我帮你推荐合适的尺码💕';
     } else if (/颜色|color/i.test(text)) {
-      return '目前有多个颜色可选，具体请看主页链接～';
-    } else if (/链接|link/i.test(text)) {
-      return '链接在主页置顶哦～';
+      return '目前有多个颜色可选～点击笔记商品卡可以看所有颜色，或站内私信我推荐💕';
+    } else if (/链接|有链接|第几张|图几|怎么拿|po|主页/i.test(text)) {
+      return '亲，点击笔记下方商品卡或挂车就能看到啦～也可以站内私信我💕';
+    } else if (/有货/i.test(text)) {
+      return '有货的～点击笔记商品卡可以直接下单，或站内私信我帮你查库存💕';
     }
-    return '详细信息请点击主页链接查看，或私信咨询～';
+    return '详细信息在笔记商品卡里都有哦～也可以站内私信我咨询💕';
   } else if (tag === '购买意向') {
-    return '感谢支持！购买链接在主页置顶，或私信我帮你下单～';
+    return '谢谢亲的喜欢！点击笔记商品卡或挂车可以直接下单～有问题随时站内私信我💕';
   }
-  return '感谢关注！有任何问题都可以私信～';
+  return '感谢关注！有任何问题都可以站内私信我～';
 }
 
 export function parseComments(input: string): Comment[] {

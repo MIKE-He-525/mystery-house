@@ -302,10 +302,20 @@ export default function WorkspacePage() {
           <div>
             <strong>🎯 要回复（购买意向/产品问题）：</strong>
             <ul style={{ marginTop: 8, paddingLeft: 20 }}>
-              <li>询价：多少钱、价格、包邮、优惠、how much、price</li>
-              <li>产品问题：尺码、颜色、材质、有货、链接、size、color、in stock</li>
-              <li>购买意向：想买、下单、求链接、怎么买、want to buy</li>
+              <li>
+                询价：多少钱、<strong>多少、啥价</strong>、怎么卖、价格、包邮、优惠、how much、price
+              </li>
+              <li>
+                产品问题：尺码、颜色、材质、有货、<strong>有m吗</strong>、链接、
+                <strong>第几张、图几、怎么拿、po一下</strong>、size、color、in stock
+              </li>
+              <li>
+                购买意向：想买、下单、求链接、有链接吗、怎么买、<strong>主页</strong>、want to buy
+              </li>
             </ul>
+            <p style={{ marginTop: 8, fontSize: 13, color: '#666' }}>
+              💡 识别委婉询价：小红书会过滤"价格""微信"等词，买家常用"多少""图几"等委婉方式询问
+            </p>
           </div>
           <div>
             <strong>🚫 广告/导流（建议删除或不回复）：</strong>
@@ -325,7 +335,24 @@ export default function WorkspacePage() {
             </ul>
           </div>
         </div>
-        <p style={{ marginTop: 16, color: '#666', fontSize: 14 }}>
+        <div
+          style={{
+            marginTop: 16,
+            padding: 12,
+            background: '#f0f9ff',
+            borderRadius: 8,
+            fontSize: 14,
+          }}
+        >
+          <p style={{ marginBottom: 8, fontWeight: 600, color: '#0369a1' }}>
+            ✅ 建议回复合规策略
+          </p>
+          <p style={{ color: '#0c4a6e', lineHeight: 1.5 }}>
+            所有建议回复仅引导至<strong>笔记商品卡、挂车或站内私信</strong>
+            ，绝不包含微信、vx、电话等站外引流内容，帮助店主合规经营。
+          </p>
+        </div>
+        <p style={{ marginTop: 12, color: '#666', fontSize: 14 }}>
           ⚠️ 本工具使用确定性规则分类，无需 AI
           密钥即可工作。分类准确率取决于规则覆盖，建议人工审核后再操作。
         </p>
