@@ -408,6 +408,258 @@ button {
   margin-bottom: 16px;
 }
 
+/* Task List Styles */
+.task-list-section {
+  margin-bottom: 24px;
+}
+
+.task-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 3px solid #667eea;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-item {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.task-item:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.task-item.completed {
+  opacity: 0.6;
+  background: #f9fafb;
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+.task-checkbox {
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.task-checkbox input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.task-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-comment {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.task-username {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.task-text {
+  color: #1f2937;
+}
+
+.task-reason {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.task-tag {
+  background: #e0e7ff;
+  color: #667eea;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.task-reason-text {
+  color: #6b7280;
+}
+
+.task-reply {
+  padding: 16px;
+  background: #f0f9ff;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.task-reply-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 8px;
+}
+
+.task-reply-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #0c4a6e;
+  margin-bottom: 12px;
+}
+
+.copy-button {
+  background: #667eea;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.copy-button:hover {
+  background: #5568d3;
+}
+
+/* Collapsible Sections */
+.collapsible-section {
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.collapsible-header {
+  width: 100%;
+  padding: 16px 20px;
+  background: #f9fafb;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  transition: background 0.2s;
+}
+
+.collapsible-header:hover {
+  background: #f3f4f6;
+}
+
+.collapse-icon {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.collapsible-content {
+  padding: 16px 20px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Spam Items */
+.spam-item {
+  padding: 12px;
+  background: #fef2f2;
+  border-left: 3px solid #ef4444;
+  border-radius: 6px;
+}
+
+.spam-comment {
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.spam-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.spam-tag {
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.spam-reason {
+  color: #6b7280;
+}
+
+/* Other Items */
+.other-item {
+  padding: 12px;
+  background: #f8fafc;
+  border-left: 3px solid #94a3b8;
+  border-radius: 6px;
+}
+
+.other-comment {
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.other-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.other-tag {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.other-reason {
+  color: #6b7280;
+}
+
+.other-reply {
+  font-size: 14px;
+  color: #475569;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+}
+
 @media (max-width: 768px) {
   .hero h1 {
     font-size: 32px;
@@ -425,5 +677,22 @@ button {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
+  }
+
+  .task-item {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .task-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .task-reason {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }

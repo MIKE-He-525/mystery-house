@@ -11,6 +11,10 @@ export default function WorkspacePage() {
   const [savedJobs, setSavedJobs] = useState<
     Array<{ id: string; timestamp: number; total: number }>
   >([]);
+  const [currentJobId, setCurrentJobId] = useState<string>('');
+  const [completedTasks, setCompletedTasks] = useState<Set<number>>(new Set());
+  const [showSpam, setShowSpam] = useState(false);
+  const [showOther, setShowOther] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('mystery-house-jobs');
@@ -22,6 +26,19 @@ export default function WorkspacePage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (currentJobId) {
+      const saved = localStorage.getItem(`mystery-house-completed-${currentJobId}`);
+      if (saved) {
+        try {
+          setCompletedTasks(new Set(JSON.parse(saved)));
+        } catch (e) {
+          console.error('Failed to load completed tasks:', e);
+        }
+      }
+    }
+  }, [currentJobId]);
 
   const handleClassify = () => {
     if (!input.trim()) {
@@ -36,6 +53,9 @@ export default function WorkspacePage() {
       setIsProcessing(false);
 
       const jobId = Date.now().toString();
+      setCurrentJobId(jobId);
+      setCompletedTasks(new Set());
+
       const newJob = {
         id: jobId,
         timestamp: Date.now(),
@@ -68,6 +88,35 @@ export default function WorkspacePage() {
   const handleClear = () => {
     setInput('');
     setResults([]);
+    setCurrentJobId('');
+    setCompletedTasks(new Set());
+  };
+
+  const handleToggleComplete = (index: number) => {
+    const newCompleted = new Set(completedTasks);
+    if (newCompleted.has(index)) {
+      newCompleted.delete(index);
+    } else {
+      newCompleted.add(index);
+    }
+    setCompletedTasks(newCompleted);
+    if (currentJobId) {
+      localStorage.setItem(
+        `mystery-house-completed-${currentJobId}`,
+        JSON.stringify(Array.from(newCompleted))
+      );
+    }
+  };
+
+  const handleCopyReply = (reply: string) => {
+    navigator.clipboard.writeText(reply).then(
+      () => {
+        alert('✅ 已复制到剪贴板');
+      },
+      () => {
+        alert('❌ 复制失败，请手动复制');
+      }
+    );
   };
 
   const handleExportCSV = () => {
@@ -100,6 +149,10 @@ export default function WorkspacePage() {
   const purchaseComments = results.filter((r) => r.category === 'purchase');
   const spamComments = results.filter((r) => r.category === 'spam');
   const otherComments = results.filter((r) => r.category === 'other');
+
+  const remainingTasks = purchaseComments.filter(
+    (_, idx) => !completedTasks.has(idx)
+  ).length;
 
   return (
     <div className="workspace">
@@ -155,6 +208,15 @@ export default function WorkspacePage() {
                       const saved = localStorage.getItem(`mystery-house-job-${job.id}`);
                       if (saved) {
                         setResults(JSON.parse(saved));
+                        setCurrentJobId(job.id);
+                        const completedSaved = localStorage.getItem(
+                          `mystery-house-completed-${job.id}`
+                        );
+                        if (completedSaved) {
+                          setCompletedTasks(new Set(JSON.parse(completedSaved)));
+                        } else {
+                          setCompletedTasks(new Set());
+                        }
                       }
                     }}
                   >
@@ -168,121 +230,167 @@ export default function WorkspacePage() {
 
         {results.length > 0 ? (
           <div className="results-panel">
+            {/* 今日待回任务列表 */}
+            <div className="task-list-section">
+              <div className="task-list-header">
+                <h2 style={{ fontSize: 24, marginBottom: 8 }}>✅ 今日待回</h2>
+                {purchaseComments.length > 0 && (
+                  <div style={{ fontSize: 16, color: '#667eea', fontWeight: 600 }}>
+                    还剩 {remainingTasks} 条
+                  </div>
+                )}
+              </div>
+
+              {purchaseComments.length === 0 ? (
+                <div style={{ padding: 40, textAlign: 'center', color: '#666' }}>
+                  🎉 没有需要回复的评论
+                </div>
+              ) : (
+                <div className="task-list">
+                  {purchaseComments.map((comment, idx) => (
+                    <div
+                      key={idx}
+                      className={`task-item ${completedTasks.has(idx) ? 'completed' : ''}`}
+                    >
+                      <div className="task-checkbox">
+                        <input
+                          type="checkbox"
+                          id={`task-${idx}`}
+                          checked={completedTasks.has(idx)}
+                          onChange={() => handleToggleComplete(idx)}
+                        />
+                        <label htmlFor={`task-${idx}`}></label>
+                      </div>
+
+                      <div className="task-content">
+                        <div className="task-comment">
+                          {comment.original.username && (
+                            <span className="task-username">{comment.original.username}: </span>
+                          )}
+                          <span className="task-text">{comment.original.text}</span>
+                        </div>
+
+                        <div className="task-reason">
+                          <span className="task-tag">{comment.tags.join(', ')}</span>
+                          <span className="task-reason-text">{comment.reason}</span>
+                        </div>
+
+                        {comment.suggestedReply && (
+                          <div className="task-reply">
+                            <div className="task-reply-label">💬 建议回复：</div>
+                            <div className="task-reply-text">{comment.suggestedReply}</div>
+                            <button
+                              className="copy-button"
+                              onClick={() => handleCopyReply(comment.suggestedReply!)}
+                            >
+                              📋 复制草稿
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 广告/导流折叠区域 */}
+            {spamComments.length > 0 && (
+              <div className="collapsible-section">
+                <button
+                  className="collapsible-header"
+                  onClick={() => setShowSpam(!showSpam)}
+                >
+                  <span>
+                    🚫 广告/导流 ({spamComments.length} 条) - 建议删除/不回复
+                  </span>
+                  <span className="collapse-icon">{showSpam ? '▼' : '▶'}</span>
+                </button>
+                {showSpam && (
+                  <div className="collapsible-content">
+                    {spamComments.map((comment, idx) => (
+                      <div key={idx} className="spam-item">
+                        <div className="spam-comment">
+                          {comment.original.username && (
+                            <strong>{comment.original.username}: </strong>
+                          )}
+                          {comment.original.text}
+                        </div>
+                        <div className="spam-meta">
+                          <span className="spam-tag">{comment.tags.join(', ')}</span>
+                          <span className="spam-reason">{comment.reason}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 其他折叠区域 */}
+            {otherComments.length > 0 && (
+              <div className="collapsible-section">
+                <button
+                  className="collapsible-header"
+                  onClick={() => setShowOther(!showOther)}
+                >
+                  <span>💬 其他 ({otherComments.length} 条) - 可选回复</span>
+                  <span className="collapse-icon">{showOther ? '▼' : '▶'}</span>
+                </button>
+                {showOther && (
+                  <div className="collapsible-content">
+                    {otherComments.map((comment, idx) => (
+                      <div key={idx} className="other-item">
+                        <div className="other-comment">
+                          {comment.original.username && (
+                            <strong>{comment.original.username}: </strong>
+                          )}
+                          {comment.original.text}
+                        </div>
+                        <div className="other-meta">
+                          <span className="other-tag">{comment.tags.join(', ')}</span>
+                          {comment.reason && (
+                            <span className="other-reason">{comment.reason}</span>
+                          )}
+                        </div>
+                        {comment.suggestedReply && (
+                          <div className="other-reply">{comment.suggestedReply}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 统计和导出 */}
             <div
               style={{
+                marginTop: 24,
+                padding: 20,
+                background: '#f9fafb',
+                borderRadius: 8,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: 20,
+                flexWrap: 'wrap',
+                gap: 16,
               }}
             >
-              <h2 style={{ fontSize: 24 }}>📊 分类结果</h2>
-              <button className="primary-button" onClick={handleExportCSV}>
-                导出「要回复」CSV
+              <div style={{ display: 'flex', gap: 24, fontSize: 14 }}>
+                <span>
+                  总评论：<strong>{results.length}</strong>
+                </span>
+                <span style={{ color: '#667eea' }}>
+                  要回复：<strong>{purchaseComments.length}</strong>
+                </span>
+                <span style={{ color: '#10b981' }}>
+                  已回：<strong>{completedTasks.size}</strong>
+                </span>
+              </div>
+              <button className="secondary-button" onClick={handleExportCSV}>
+                导出 CSV
               </button>
-            </div>
-
-            <div className="stats">
-              <div className="stat-card">
-                <div className="stat-number">{results.length}</div>
-                <div className="stat-label">总评论</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number" style={{ color: '#667eea' }}>
-                  {purchaseComments.length}
-                </div>
-                <div className="stat-label">要回复</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number" style={{ color: '#ef4444' }}>
-                  {spamComments.length}
-                </div>
-                <div className="stat-label">广告/导流</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number" style={{ color: '#64748b' }}>
-                  {otherComments.length}
-                </div>
-                <div className="stat-label">其他</div>
-              </div>
-            </div>
-
-            <div className="results-grid">
-              <div className="result-column">
-                <h4>🎯 要回复 ({purchaseComments.length})</h4>
-                {purchaseComments.map((comment, idx) => (
-                  <div key={idx} className="comment-card">
-                    <div className="comment-text">
-                      {comment.original.username && (
-                        <strong>{comment.original.username}: </strong>
-                      )}
-                      {comment.original.text}
-                    </div>
-                    <div className="comment-meta">
-                      <span className="tag">{comment.tags.join(', ')}</span>
-                      <span style={{ fontSize: 12, color: '#666' }}>{comment.reason}</span>
-                    </div>
-                    {comment.suggestedReply && (
-                      <div className="suggested-reply">
-                        <div style={{ fontWeight: 600, marginBottom: 4 }}>💡 建议回复：</div>
-                        {comment.suggestedReply}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="result-column">
-                <h4 style={{ color: '#ef4444' }}>🚫 广告/导流 ({spamComments.length})</h4>
-                {spamComments.map((comment, idx) => (
-                  <div key={idx} className="comment-card spam">
-                    <div className="comment-text">
-                      {comment.original.username && (
-                        <strong>{comment.original.username}: </strong>
-                      )}
-                      {comment.original.text}
-                    </div>
-                    <div className="comment-meta">
-                      <span className="tag" style={{ background: '#fee2e2', color: '#ef4444' }}>
-                        {comment.tags.join(', ')}
-                      </span>
-                      <span style={{ fontSize: 12, color: '#666' }}>{comment.reason}</span>
-                    </div>
-                    {comment.suggestedReply && (
-                      <div className="suggested-reply" style={{ background: '#fef2f2' }}>
-                        💡 {comment.suggestedReply}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="result-column">
-                <h4 style={{ color: '#64748b' }}>💬 其他 ({otherComments.length})</h4>
-                {otherComments.map((comment, idx) => (
-                  <div key={idx} className="comment-card other">
-                    <div className="comment-text">
-                      {comment.original.username && (
-                        <strong>{comment.original.username}: </strong>
-                      )}
-                      {comment.original.text}
-                    </div>
-                    <div className="comment-meta">
-                      <span className="tag" style={{ background: '#f1f5f9', color: '#64748b' }}>
-                        {comment.tags.join(', ')}
-                      </span>
-                      {comment.reason && (
-                        <span style={{ fontSize: 12, color: '#666' }}>{comment.reason}</span>
-                      )}
-                    </div>
-                    {comment.suggestedReply && (
-                      <div className="suggested-reply" style={{ background: '#f8fafc' }}>
-                        💡 {comment.suggestedReply}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         ) : (
